@@ -2,10 +2,14 @@
   "version": 2,
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
-  "public": true,
-  "git": {
-    "deploymentEnabled": {
-      "main": true
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "/api/$1"
+    },
+    {
+      "src": "/(?!api/).*",
+      "dest": "/index.html"
     }
-  }
+  ]
 }
