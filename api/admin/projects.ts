@@ -1,29 +1,68 @@
 import { VercelRequest, VercelResponse } from "@vercel/node";
-import path from "path";
-import fs from "fs";
 
 interface Database {
   blogs: any[];
   projects: any[];
 }
 
-const DB_PATH = path.join(process.cwd(), "db.json");
+async function getDBFromGithub(): Promise<{ data: Database; sha: string }> {
+  const token = process.env.GITHUB_TOKEN;
+  const repo = process.env.GITHUB_REPO || "your-username/your-repo";
 
-function readDB(): Database {
-  if (!fs.existsSync(DB_PATH)) {
-    const defaultDB: Database = { blogs: [], projects: [] };
-    fs.writeFileSync(DB_PATH, JSON.stringify(defaultDB, null, 2));
-    return defaultDB;
+  const res = await fetch(
+    `https://api.github.com/repos/${repo}/contents/db.json`,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: "application/vnd.github.v3+json",
+      },
+    }
+  );
+
+  if (!res.ok) {
+    throw new Error("Failed to fetch db.json from GitHub");
   }
-  const content = fs.readFileSync(DB_PATH, "utf8");
-  return JSON.parse(content);
+
+  const json = await res.json() as any;
+  const content = Buffer.from(json.content, "base64").toString("utf-8");
+  return { data: JSON.parse(content), sha: json.sha };
 }
 
-function writeDB(db: Database): void {
-  fs.writeFileSync(DB_PATH, JSON.stringify(db, null, 2));
+async function updateDBOnGithub(
+  data: Database,
+  sha: string,
+  message: string
+): Promise<void> {
+  const token = process.env.GITHUB_TOKEN;
+  const repo = process.env.GITHUB_REPO || "your-username/your-repo";
+
+  const content = Buffer.from(JSON.stringify(data, null, 2)).toString("base64");
+
+  const res = await fetch(
+    `https://api.github.com/repos/${repo}/contents/db.json`,
+    {
+      method: "PUT",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        message,
+        content,
+        sha,
+      }),
+    }
+  );
+
+  if (!res.ok) {
+    throw new Error("Failed to update db.json on GitHub");
+  }
 }
 
-export default function handler(req: VercelRequest, res: VercelResponse) {
+export default async function handler(
+  req: VercelRequest,
+  res: VercelResponse
+) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
   }
@@ -36,11 +75,12 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
-    const db = readDB();
-    db.projects = projects;
-    writeDB(db);
+    const { data: dbData, sha } = await getDBFromGithub();
+    dbData.projects = projects;
+    await updateDBOnGithub(dbData, sha, "Update projects");
     res.json({ success: true });
   } catch (err) {
+    console.error(err);
     res.status(500).json({ error: "Failed to save projects" });
   }
 }

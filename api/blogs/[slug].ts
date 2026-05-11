@@ -1,6 +1,4 @@
 import { VercelRequest, VercelResponse } from "@vercel/node";
-import path from "path";
-import fs from "fs";
 
 interface Blog {
   slug: string;
@@ -18,26 +16,44 @@ interface Database {
   projects: any[];
 }
 
-const DB_PATH = path.join(process.cwd(), "db.json");
+async function getDBFromGithub(): Promise<Database> {
+  const token = process.env.GITHUB_TOKEN;
+  const repo = process.env.GITHUB_REPO || "your-username/your-repo";
 
-function readDB(): Database {
-  if (!fs.existsSync(DB_PATH)) {
-    const defaultDB: Database = { blogs: [], projects: [] };
-    fs.writeFileSync(DB_PATH, JSON.stringify(defaultDB, null, 2));
-    return defaultDB;
+  try {
+    const res = await fetch(
+      `https://api.github.com/repos/${repo}/contents/db.json`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: "application/vnd.github.v3.raw",
+        },
+      }
+    );
+
+    if (res.ok) {
+      const content = await res.text();
+      return JSON.parse(content);
+    }
+
+    return { blogs: [], projects: [] };
+  } catch (err) {
+    console.error("Failed to fetch from GitHub:", err);
+    return { blogs: [], projects: [] };
   }
-  const content = fs.readFileSync(DB_PATH, "utf8");
-  return JSON.parse(content) as Database;
 }
 
-export default function handler(req: VercelRequest, res: VercelResponse) {
+export default async function handler(
+  req: VercelRequest,
+  res: VercelResponse
+) {
   if (req.method !== "GET") {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
   try {
     const { slug } = req.query;
-    const db = readDB();
+    const db = await getDBFromGithub();
     const blog = db.blogs.find((b: Blog) => b.slug === slug);
 
     if (!blog) {

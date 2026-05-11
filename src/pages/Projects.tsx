@@ -10,9 +10,10 @@ export default function Projects() {
   const [projects, setProjects] = useState<any[]>([]);
 
   useEffect(() => {
-    fetch("/api/projects")
+    fetch("/api/projects?t=" + Date.now())
       .then(res => res.json())
-      .then(data => setProjects(data));
+      .then(data => setProjects(data))
+      .catch(err => console.error("Failed to load projects:", err));
   }, []);
 
   const filteredProjects = projects.filter(

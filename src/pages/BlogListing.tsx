@@ -7,9 +7,10 @@ export default function BlogListing() {
   const [blogs, setBlogs] = useState<any[]>([]);
 
   useEffect(() => {
-    fetch("/api/blogs")
+    fetch("/api/blogs?t=" + Date.now())
       .then(res => res.json())
-      .then(data => setBlogs(data));
+      .then(data => setBlogs(data))
+      .catch(err => console.error("Failed to load blogs:", err));
   }, []);
 
   return (
