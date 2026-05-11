@@ -1,4 +1,6 @@
 import { VercelRequest, VercelResponse } from "@vercel/node";
+import fs from "fs";
+import path from "path";
 
 interface Database {
   blogs: any[];
@@ -7,7 +9,11 @@ interface Database {
 
 async function getDBFromGithub(): Promise<Database> {
   const token = process.env.GITHUB_TOKEN;
-  const repo = process.env.GITHUB_REPO || "your-username/your-repo";
+  const repo = process.env.GITHUB_REPO;
+
+  if (!token || !repo) {
+    return getDBLocal();
+  }
 
   try {
     const res = await fetch(
@@ -25,11 +31,24 @@ async function getDBFromGithub(): Promise<Database> {
       return JSON.parse(content);
     }
 
-    return { blogs: [], projects: [] };
+    return getDBLocal();
   } catch (err) {
     console.error("Failed to fetch from GitHub:", err);
-    return { blogs: [], projects: [] };
+    return getDBLocal();
   }
+}
+
+function getDBLocal(): Database {
+  try {
+    const dbPath = path.join(process.cwd(), "db.json");
+    if (fs.existsSync(dbPath)) {
+      const content = fs.readFileSync(dbPath, "utf8");
+      return JSON.parse(content);
+    }
+  } catch (err) {
+    console.error("Failed to read local db.json:", err);
+  }
+  return { blogs: [], projects: [] };
 }
 
 export default async function handler(
