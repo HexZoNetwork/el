@@ -2,13 +2,15 @@
   "version": 2,
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
+  "cleanUrls": true,
+  "trailingSlash": false,
   "routes": [
     {
-      "src": "/api/(.*)",
-      "dest": "/api/$1"
+      "src": "^/api/.*",
+      "continue": true
     },
     {
-      "src": "/(?!.*\\.(?:js|css|json|woff2?|ttf|eot|svg|ico|webp|png|jpg|jpeg|gif)$).*",
+      "src": "^/(?!.*\\.).*$",
       "dest": "/index.html"
     }
   ]
