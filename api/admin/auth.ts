@@ -18,28 +18,35 @@ export default async function handler(
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  const ip = getClientIP(req);
-  const { password } = req.body;
-  const adminPassword = process.env.ADMIN_PASSWORD || "emudpanelviral";
+  try {
+    const ip = getClientIP(req);
+    // Tambahkan fallback empty object agar tidak crash saat destructuring
+    const { password } = req.body || {};
+    const adminPassword = process.env.ADMIN_PASSWORD || "emudpanelviral";
 
-  // Check rate limit
-  const rateCheck = await checkRateLimit(ip);
-  if (!rateCheck.allowed) {
-    return res.status(429).json({
-      success: false,
-      message: rateCheck.message,
-      remainingSeconds: rateCheck.remainingSeconds,
-    });
+    // Check rate limit
+    const rateCheck = await checkRateLimit(ip);
+    if (!rateCheck.allowed) {
+      return res.status(429).json({
+        success: false,
+        message: rateCheck.message,
+        remainingSeconds: rateCheck.remainingSeconds,
+      });
+    }
+
+    // Verify password
+    if (password && password === adminPassword) {
+      // Reset rate limit on successful login
+      await resetRateLimit(ip);
+      return res.json({ success: true });
+    } else {
+      // Record failure
+      await recordFailure(ip);
+      return res.status(401).json({ success: false, message: "Invalid password" });
+    }
+  } catch (err) {
+    console.error("Auth API Error:", err);
+    return res.status(500).json({ error: "Internal Server Error" });
   }
-
-  // Verify password
-  if (password === adminPassword) {
-    // Reset rate limit on successful login
-    await resetRateLimit(ip);
-    res.json({ success: true });
-  } else {
-    // Record failure
-    await recordFailure(ip);
-    res.status(401).json({ success: false, message: "Invalid password" });
   }
 }
