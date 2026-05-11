@@ -1,7 +1,27 @@
 import { VercelRequest, VercelResponse } from "@vercel/node";
 import path from "path";
 import fs from "fs";
-import matter from "gray-matter";
+
+interface Database {
+  blogs: any[];
+  projects: any[];
+}
+
+const DB_PATH = path.join(process.cwd(), "db.json");
+
+function readDB(): Database {
+  if (!fs.existsSync(DB_PATH)) {
+    const defaultDB: Database = { blogs: [], projects: [] };
+    fs.writeFileSync(DB_PATH, JSON.stringify(defaultDB, null, 2));
+    return defaultDB;
+  }
+  const content = fs.readFileSync(DB_PATH, "utf8");
+  return JSON.parse(content);
+}
+
+function writeDB(db: Database): void {
+  fs.writeFileSync(DB_PATH, JSON.stringify(db, null, 2));
+}
 
 export default function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "POST") {
@@ -16,14 +36,22 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
-    const blogsDir = path.join(process.cwd(), "content", "blogs");
-    if (!fs.existsSync(blogsDir)) {
-      fs.mkdirSync(blogsDir, { recursive: true });
+    const db = readDB();
+    const blogIndex = db.blogs.findIndex((b) => b.slug === slug);
+    
+    const newBlog = {
+      slug,
+      ...data,
+      body,
+    };
+
+    if (blogIndex >= 0) {
+      db.blogs[blogIndex] = newBlog;
+    } else {
+      db.blogs.push(newBlog);
     }
 
-    const fileName = slug.endsWith(".mdx") ? slug : `${slug}.mdx`;
-    const content = matter.stringify(body, data);
-    fs.writeFileSync(path.join(blogsDir, fileName), content);
+    writeDB(db);
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: "Failed to save blog" });

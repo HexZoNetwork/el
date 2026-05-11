@@ -1,7 +1,34 @@
 import { VercelRequest, VercelResponse } from "@vercel/node";
 import path from "path";
 import fs from "fs";
-import matter from "gray-matter";
+
+interface Blog {
+  slug: string;
+  title: string;
+  description: string;
+  date: string;
+  published?: boolean;
+  author?: string;
+  body: string;
+  [key: string]: any;
+}
+
+interface Database {
+  blogs: Blog[];
+  projects: any[];
+}
+
+const DB_PATH = path.join(process.cwd(), "db.json");
+
+function readDB(): Database {
+  if (!fs.existsSync(DB_PATH)) {
+    const defaultDB: Database = { blogs: [], projects: [] };
+    fs.writeFileSync(DB_PATH, JSON.stringify(defaultDB, null, 2));
+    return defaultDB;
+  }
+  const content = fs.readFileSync(DB_PATH, "utf8");
+  return JSON.parse(content);
+}
 
 export default function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "GET") {
@@ -10,16 +37,14 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
 
   try {
     const { slug } = req.query;
-    const blogsDir = path.join(process.cwd(), "content", "blogs");
-    const filePath = path.join(blogsDir, `${slug}.mdx`);
+    const db = readDB();
+    const blog = db.blogs.find((b) => b.slug === slug);
 
-    if (!fs.existsSync(filePath)) {
+    if (!blog) {
       return res.status(404).json({ error: "Blog not found" });
     }
 
-    const content = fs.readFileSync(filePath, "utf8");
-    const { data, content: body } = matter(content);
-    res.json({ slug, ...data, body });
+    res.json(blog);
   } catch (err) {
     res.status(500).json({ error: "Failed to load blog" });
   }
