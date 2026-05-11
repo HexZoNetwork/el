@@ -19,12 +19,19 @@ export default function Admin() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ password }),
     });
+    
+    const data = await res.json();
+    
     if (res.ok) {
       setIsAuth(true);
       setError("");
       fetchData();
+    } else if (res.status === 429) {
+      // Rate limited
+      setError(`🔒 Account locked: ${data.message}`);
     } else {
-      setError("Invalid password");
+      // Invalid password
+      setError(data.message || "Invalid password");
     }
   };
 
