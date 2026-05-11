@@ -27,7 +27,7 @@ function readDB(): Database {
     return defaultDB;
   }
   const content = fs.readFileSync(DB_PATH, "utf8");
-  return JSON.parse(content);
+  return JSON.parse(content) as Database;
 }
 
 export default function handler(req: VercelRequest, res: VercelResponse) {
@@ -38,7 +38,7 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
   try {
     const { slug } = req.query;
     const db = readDB();
-    const blog = db.blogs.find((b) => b.slug === slug);
+    const blog = db.blogs.find((b: Blog) => b.slug === slug);
 
     if (!blog) {
       return res.status(404).json({ error: "Blog not found" });

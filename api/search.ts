@@ -27,7 +27,7 @@ function readDB(): Database {
     return defaultDB;
   }
   const content = fs.readFileSync(DB_PATH, "utf8");
-  return JSON.parse(content);
+  return JSON.parse(content) as Database;
 }
 
 export default function handler(req: VercelRequest, res: VercelResponse) {
@@ -38,8 +38,8 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
   try {
     const query = (req.query.q as string || "").toLowerCase();
     const db = readDB();
-    const blogs = db.blogs.filter(
-      (b) =>
+    const blogs: Blog[] = db.blogs.filter(
+      (b: Blog) =>
         b.published !== false &&
         (b.title?.toLowerCase().includes(query) ||
           b.description?.toLowerCase().includes(query) ||

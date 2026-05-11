@@ -27,7 +27,7 @@ function readDB(): Database {
     return defaultDB;
   }
   const content = fs.readFileSync(DB_PATH, "utf8");
-  return JSON.parse(content);
+  return JSON.parse(content) as Database;
 }
 
 export default function handler(req: VercelRequest, res: VercelResponse) {
@@ -37,9 +37,9 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
 
   try {
     const db = readDB();
-    const blogs = db.blogs
-      .filter((b) => b.published !== false || req.query.admin === "true")
-      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    const blogs: Blog[] = db.blogs
+      .filter((b: Blog) => b.published !== false || req.query.admin === "true")
+      .sort((a: Blog, b: Blog) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
     res.json(blogs);
   } catch (err) {
