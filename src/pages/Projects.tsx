@@ -1,6 +1,5 @@
 import { motion } from "motion/react";
 import ProjectCard from "../components/ProjectCard";
-import { ArrowRight } from "lucide-react";
 import { useState, useEffect } from "react";
 
 const categories = ["All", "Security", "Destruction", "Tools", "Labs"];
@@ -66,16 +65,6 @@ export default function Projects() {
           </div>
         )}
       </div>
-      
-      {/* Collaboration Call-to-action */}
-      <section className="mt-40 p-16 glass-card border-primary-purple/10 text-center relative overflow-hidden group">
-         <div className="glow-orb -top-20 -left-20 w-64 h-64 bg-primary-purple/10"></div>
-         <h2 className="text-4xl font-display font-black mb-6 uppercase tracking-tighter">Initiate Collaboration?</h2>
-         <p className="text-gray-400 mb-12 max-w-xl mx-auto text-lg">We are currently accepting selective research partnerships and experimental coding requests.</p>
-         <a href="mailto:contact@el7-team.com" className="px-12 py-5 bg-white text-black rounded-2xl font-black hover:scale-105 active:scale-95 transition-all inline-flex items-center gap-3">
-            ESTABLISH CONNECTION <ArrowRight className="w-5 h-5" />
-         </a>
-      </section>
     </div>
   );
 }
