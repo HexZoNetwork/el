@@ -28,12 +28,24 @@ export default function Home() {
 
   useEffect(() => {
     fetch("/api/blogs")
-      .then(res => res.json())
-      .then(data => setBlogs(data.slice(0, 3)));
-      
+      .then(res => {
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+        return res.json();
+      })
+      .then(data => setBlogs(data.slice(0, 3)))
+      .catch(err => console.error("Failed to load blogs:", err));
+
     fetch("/api/projects")
-      .then(res => res.json())
-      .then(data => setProjects(data.slice(0, 2)));
+      .then(res => {
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+        return res.json();
+      })
+      .then(data => setProjects(data.slice(0, 2)))
+      .catch(err => console.error("Failed to load projects:", err));
   }, []);
 
   return (

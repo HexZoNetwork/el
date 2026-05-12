@@ -11,9 +11,18 @@ export default function BlogDetail() {
 
   useEffect(() => {
     fetch(`/api/blogs/${slug}`)
-      .then(res => res.json())
+      .then(res => {
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+        return res.json();
+      })
       .then(data => {
         setBlog(data);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error('Failed to fetch blog:', err);
         setLoading(false);
       });
   }, [slug]);

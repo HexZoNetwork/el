@@ -14,33 +14,49 @@ export default function Admin() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    const res = await fetch("/api/admin/auth", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ password }),
-    });
-    
-    const data = await res.json();
-    
-    if (res.ok) {
-      setIsAuth(true);
-      setError("");
-      fetchData();
-    } else if (res.status === 429) {
-      // Rate limited
-      setError(`🔒 Account locked: ${data.message}`);
-    } else {
-      // Invalid password
-      setError(data.message || "Invalid password");
+    try {
+      const res = await fetch("/api/admin/auth", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        setIsAuth(true);
+        setError("");
+        try {
+          await fetchData();
+        } catch (err) {
+          console.error("Failed to fetch data:", err);
+          setError("Failed to load data");
+        }
+      } else if (res.status === 429) {
+        // Rate limited
+        setError(`🔒 Account locked: ${data.message}`);
+      } else {
+        // Invalid password
+        setError(data.message || "Invalid password");
+      }
+    } catch (err) {
+      console.error("Login error:", err);
+      setError("Failed to connect to server");
     }
   };
 
   const fetchData = async () => {
     const resB = await fetch("/api/blogs?admin=true");
+    if (!resB.ok) {
+      throw new Error(`HTTP error! status: ${resB.status}`);
+    }
     const blogsData = await resB.json();
     setBlogs(blogsData);
 
     const resP = await fetch("/api/projects");
+    if (!resP.ok) {
+      throw new Error(`HTTP error! status: ${resP.status}`);
+    }
     const projectsData = await resP.json();
     setProjects(projectsData);
   };
@@ -185,7 +201,13 @@ export default function Admin() {
                )}
                <button onClick={() => {
                  if (activeTab === "blogs") {
-                    fetch(`/api/blogs/${item.slug}`).then(r => r.json()).then(data => setEditingPost(data));
+                    fetch(`/api/blogs/${item.slug}`)
+                      .then(r => {
+                        if (!r.ok) throw new Error(`HTTP error! status: ${r.status}`);
+                        return r.json();
+                      })
+                      .then(data => setEditingPost(data))
+                      .catch(err => console.error("Failed to fetch blog:", err));
                  } else {
                     setEditingProject(item);
                  }

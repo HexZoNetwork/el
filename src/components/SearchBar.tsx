@@ -29,6 +29,9 @@ export default function SearchBar() {
       setIsLoading(true);
       try {
         const res = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
         const data = await res.json();
         setResults(data);
         setIsOpen(true);

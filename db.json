@@ -1,4 +1,35 @@
 {
-  "blogs": [],
-  "projects": []
+  "blogs": [
+    {
+      "slug": "welcome",
+      "title": "Welcome to El7 Insiders",
+      "description": "Getting started with our latest updates and insights",
+      "date": "2026-05-11",
+      "published": true,
+      "author": "El7 Team",
+      "image": "https://images.unsplash.com/photo-1558494949-ef010cbdcc48?auto=format&fit=crop&q=80&w=800",
+      "tags": ["introduction", "welcome"],
+      "body": "# Welcome to El7 Insiders\n\nThis is your first blog post. You can edit or delete this from the admin panel.\n\n## Features\n\n- Lightning-fast performance\n- Fully responsive design\n- SEO optimized\n- Dark mode ready\n\nStay tuned for more updates!"
+    }
+  ],
+  "projects": [
+    {
+      "id": "1",
+      "title": "WAF Destroyer",
+      "description": "Advanced payload generator to bypass enterprise-grade Web Application Firewalls.",
+      "image": "https://images.unsplash.com/photo-1558494949-ef010cbdcc48?auto=format&fit=crop&q=80&w=800",
+      "tech": ["Python", "Golang", "CyberSec"],
+      "category": "Security",
+      "repoUrl": "#"
+    },
+    {
+      "id": "2",
+      "title": "C-DDOS Module",
+      "description": "Distributed stress-testing module utilizing edge-node concurrency for high-pressure simulation.",
+      "image": "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&q=80&w=800",
+      "tech": ["C++", "Rust", "Networking"],
+      "category": "Destruction",
+      "liveUrl": "#"
+    }
+  ]
 }

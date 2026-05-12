@@ -8,7 +8,12 @@ export default function BlogListing() {
 
   useEffect(() => {
     fetch("/api/blogs?t=" + Date.now())
-      .then(res => res.json())
+      .then(res => {
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+        return res.json();
+      })
       .then(data => setBlogs(data))
       .catch(err => console.error("Failed to load blogs:", err));
   }, []);
