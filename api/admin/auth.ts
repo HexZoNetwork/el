@@ -20,7 +20,6 @@ export default async function handler(
 
   try {
     const ip = getClientIP(req);
-    // Tambahkan fallback empty object agar tidak crash saat destructuring
     const { password } = req.body || {};
     const adminPassword = process.env.ADMIN_PASSWORD || "emudpanelviral";
 
@@ -36,11 +35,9 @@ export default async function handler(
 
     // Verify password
     if (password && password === adminPassword) {
-      // Reset rate limit on successful login
       await resetRateLimit(ip);
       return res.json({ success: true });
     } else {
-      // Record failure
       await recordFailure(ip);
       return res.status(401).json({ success: false, message: "Invalid password" });
     }
